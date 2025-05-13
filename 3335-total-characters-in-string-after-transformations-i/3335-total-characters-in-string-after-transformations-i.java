@@ -1,22 +1,20 @@
 class Solution {
     public int lengthAfterTransformations(String s, int t) {
-        final int mod = (int) 1e9 + 7;
-        int[][] f = new int[t + 1][26];
-        for (char c : s.toCharArray()) {
-            f[0][c - 'a']++;
+    	int MOD = (int)1e9 + 7, ans = 0;
+        long[] count = new long[26];
+        for (int c : s.toCharArray())
+        	count[c - 'a']++;
+        for (; t >= 26; t -= 26) {
+        	long z = count[25];
+        	for (int i = 25; i > 0; i--)
+        		count[i] = (count[i] + count[i - 1]) % MOD;
+        	count[0] = (count[0] + z) % MOD;
+        	count[1] = (count[1] + z) % MOD;
         }
-        for (int i = 1; i <= t; ++i) {
-            f[i][0] = f[i - 1][25] % mod;
-            f[i][1] = (f[i - 1][0] + f[i - 1][25]) % mod;
-            for (int j = 2; j < 26; j++) {
-                f[i][j] = f[i - 1][j - 1] % mod;
-            }
-        }
-
-        int ans = 0;
-        for (int j = 0; j < 26; ++j) {
-            ans = (ans + f[t][j]) % mod;
-        }
+        for (int i = 0; i < 26; i++)
+        	ans = (int)((ans + count[i]) % MOD);
+        for (int i = 26 - t; i < 26; i++)
+        	ans = (int)((ans + count[i]) % MOD);
         return ans;
     }
 }
