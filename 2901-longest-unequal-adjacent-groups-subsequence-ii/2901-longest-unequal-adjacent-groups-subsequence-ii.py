@@ -1,26 +1,45 @@
+# https://www.youtube.com/@0x3f
 class Solution:
-    def getWordsInLongestSubsequence(
-        self, words: List[str], groups: List[int]
-    ) -> List[str]:
-        def check(s: str, t: str) -> bool:
-            return len(s) == len(t) and sum(a != b for a, b in zip(s, t)) == 1
+    def getWordsInLongestSubsequence(self, words: List[str], groups: List[int]) -> List[str]:
+        n = len(words)
+        f_map = {}
+        from_ = [0] * n
+        global_max_f = max_i = 0
+        for i in range(n - 1, -1, -1):
+            w, g = words[i], groups[i]
+            hash_val = sum((ord(b) & 31) << (j * 6) for j, b in enumerate(w))
 
-        n = len(groups)
-        f = [1] * n
-        g = [-1] * n
-        mx = 1
-        for i, x in enumerate(groups):
-            for j, y in enumerate(groups[:i]):
-                if x != y and f[i] < f[j] + 1 and check(words[i], words[j]):
-                    f[i] = f[j] + 1
-                    g[i] = j
-                    mx = max(mx, f[i])
-        ans = []
-        for i in range(n):
-            if f[i] == mx:
-                j = i
-                while j >= 0:
-                    ans.append(words[j])
-                    j = g[j]
-                break
-        return ans[::-1]    
+            f = 0
+            for j in range(len(w)):
+                h = hash_val | (31 << (j * 6))
+                max_f, idx, max_f2, idx2 = f_map.get(h, (0, 0, 0, 0))
+                if g != groups[idx]:
+                    if max_f > f:
+                        f = max_f
+                        from_[i] = idx
+                else:
+                    if max_f2 > f:
+                        f = max_f2
+                        from_[i] = idx2
+
+            f += 1
+            if f > global_max_f:
+                global_max_f, max_i = f, i
+
+            for j in range(len(w)):
+                h = hash_val | (31 << (j * 6))
+                max_f, idx, max_f2, idx2 = f_map.get(h, (0, 0, 0, 0))
+                if f > max_f:
+                    if g != groups[idx]:
+                        max_f2, idx2 = max_f, idx
+                    max_f, idx = f, i
+                elif f > max_f2 and g != groups[idx]:
+                    max_f2, idx2 = f, i
+                f_map[h] = (max_f, idx, max_f2, idx2)
+
+        ans = [''] * global_max_f
+        i = max_i
+        for k in range(global_max_f):
+            ans[k] = words[i]
+            i = from_[i]
+        return ans
